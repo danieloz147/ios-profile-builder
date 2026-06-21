@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Profile Builder</title>
+<style>
+:root{
+  --bg:#0D1117;--bg2:#161B22;--card:#21262D;--card2:#2D333B;
+  --border:#30363D;--border2:#21262D;
+  --blue:#2F81F7;--blue-dim:rgba(47,129,247,.12);--blue-glow:rgba(47,129,247,.3);
+  --green:#3FB950;--green-dim:rgba(63,185,80,.1);
+  --yellow:#D29922;--yellow-dim:rgba(210,153,34,.1);
+  --orange:#F0883E;--orange-dim:rgba(240,136,62,.1);
+  --red:#F85149;--red-dim:rgba(248,81,73,.1);
+  --purple:#BC8CFF;--purple-dim:rgba(188,140,255,.1);
+  --text:#E6EDF3;--sub:#7D8590;--muted:#484F58;
+  --sidebar:230px
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,system-ui,"Segoe UI",sans-serif;font-size:14px;line-height:1.5;overflow-x:hidden}
+
+/* ── TOPBAR ────────────────────────────────── */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;z-index:200;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px}
+.tb-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--text);text-decoration:none}
+.tb-sep{width:1px;height:22px;background:var(--border)}
+.tb-sub{font-size:12px;color:var(--sub)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.payload-pill{display:none;align-items:center;gap:6px;background:var(--blue-dim);border:1px solid rgba(47,129,247,.25);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;color:var(--blue)}
+.payload-pill.show{display:flex}
+.ref-btn{display:flex;align-items:center;gap:6px;padding:6px 13px;border-radius:7px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.ref-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+
+/* ── LAYOUT ────────────────────────────────── */
+.layout{display:flex;padding-top:56px;min-height:100vh}
+
+/* ── SIDEBAR ───────────────────────────────── */
+.sidebar{width:var(--sidebar);flex-shrink:0;position:fixed;top:56px;bottom:0;left:0;overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);padding:12px 0 80px;display:flex;flex-direction:column}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px}
+.sb-group-label{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);padding:10px 16px 4px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;border-left:3px solid transparent;transition:background .12s,border-color .12s}
+.sb-item:hover{background:var(--card2)}
+.sb-item.active{background:var(--blue-dim);border-left-color:var(--blue)}
+.sb-item.active .sb-label{color:var(--blue)}
+.sb-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.sb-label{font-size:13px;font-weight:500;flex:1;color:var(--sub);transition:color .12s}
+.sb-item:hover .sb-label,.sb-item.active .sb-label{color:var(--text)}
+.tog{position:relative;width:28px;height:16px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-s{position:absolute;inset:0;background:var(--muted);border-radius:8px;cursor:pointer;transition:background .2s}
+.tog-s:before{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;left:2px;top:2px;transition:transform .2s}
+.tog input:checked+.tog-s{background:var(--blue)}
+.tog input:checked+.tog-s:before{transform:translateX(12px)}
+.sb-divider{height:1px;background:var(--border);margin:8px 16px}
+.sb-combos{margin:8px 10px;padding:12px;background:var(--orange-dim);border:1px solid rgba(240,136,62,.2);border-radius:10px}
+.sb-combos-title{font-size:11px;font-weight:700;color:var(--orange);margin-bottom:8px}
+.sb-combo{font-size:11px;color:rgba(240,136,62,.8);padding:3px 0;border-bottom:1px solid rgba(240,136,62,.1);line-height:1.4}
+.sb-combo:last-child{border-bottom:none}
+.sb-combo strong{color:var(--orange);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+/* ── MAIN ──────────────────────────────────── */
+.main{flex:1;margin-left:var(--sidebar);padding:24px 28px 110px;max-width:calc(100% - var(--sidebar))}
+.tpl-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.tpl-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.tpl-btn{font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--sub);transition:all .15s}
+.tpl-btn:hover,.tpl-btn.sel{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+
+/* ── SECTION CARD ──────────────────────────── */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;transition:border-color .2s,opacity .2s}
+.section.inactive{opacity:.4;pointer-events:none}
+.sec-head{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border2);border-radius:12px 12px 0 0;transition:background .12s}
+.sec-head:hover{background:var(--card2)}
+.sec-head.no-bb{border-bottom:none;border-radius:12px}
+.sh-icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.sh-title{font-size:14px;font-weight:600;flex:1}
+.sh-meta{display:flex;align-items:center;gap:7px}
+.sh-chevron{color:var(--sub);font-size:11px;transition:transform .2s;flex-shrink:0}
+.sh-chevron.open{transform:rotate(90deg)}
+.sec-body{padding:18px;display:none;animation:slideIn .2s ease}
+.sec-body.open{display:block}
+@keyframes slideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TIP CARD ──────────────────────────────── */
+.tip-card{margin:0 18px 14px;padding:12px 14px;border-radius:10px;background:rgba(188,140,255,.05);border:1px solid rgba(188,140,255,.15);animation:slideIn .2s ease;display:none}
+.tip-card.show{display:block}
+.tip-title{font-size:11px;font-weight:700;color:var(--purple);letter-spacing:.3px;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.tip-body{font-size:12px;color:rgba(200,180,255,.7);line-height:1.7}
+.tip-body ul{padding-left:20px;margin:0}
+.tip-body li{margin-bottom:4px;padding-right:14px}
+.tip-combo{margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(188,140,255,.08);border:1px solid rgba(188,140,255,.12);font-size:11px;color:var(--purple)}
+
+/* ── FORM ELEMENTS ─────────────────────────── */
+.field-group{margin-bottom:14px}
+.field-group:last-child{margin-bottom:0}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:700px){.row-2,.row-3{grid-template-columns:1fr}}
+label.fl{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-bottom:5px;letter-spacing:.2px;text-transform:uppercase}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5}
+input[type=text],input[type=url],input[type=password],textarea,select{width:100%;padding:8px 11px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+input:hover:not(:focus),textarea:hover:not(:focus),select:hover:not(:focus){border-color:var(--muted)}
+textarea{min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:12px;resize:vertical}
+select option{background:var(--card)}
+input[type=file]{font-size:12px;color:var(--sub);border:1px dashed var(--border);border-radius:6px;padding:8px 11px;background:var(--bg);width:100%;cursor:pointer}
+input[type=file]:hover{border-color:var(--blue);color:var(--text)}
+.chk-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.chk-item{display:flex;align-items:center;gap:7px;cursor:pointer}
+.chk-item input[type=checkbox]{width:15px;height:15px;border-radius:4px;accent-color:var(--blue);cursor:pointer}
+.chk-item span{font-size:13px;color:var(--sub)}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;letter-spacing:.2px}
+.b-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(47,129,247,.25)}
+.b-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+.b-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(210,153,34,.25)}
+.b-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,81,73,.25)}
+.b-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(240,136,62,.2)}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:11px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--sub)}
+.warn-box{background:var(--yellow-dim);border:1px solid rgba(210,153,34,.25);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,213,99,.85);margin-top:12px;line-height:1.6}
+.info-box{background:var(--blue-dim);border:1px solid rgba(47,129,247,.2);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(147,197,253,.85);margin-top:12px;line-height:1.6}
+.error-box{background:var(--red-dim);border:1px solid rgba(248,81,73,.35);border-radius:8px;padding:12px 14px;margin-bottom:20px;font-size:13px;color:#FF6A6A;white-space:pre-wrap}
+.sub-section{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:12px;margin-top:10px;display:none}
+.sub-section.show{display:block;animation:slideIn .2s ease}
+
+/* ── STICKY BUILD BAR ──────────────────────── */
+.build-bar{position:fixed;bottom:0;left:var(--sidebar);right:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:14px;z-index:99}
+.ps-label{font-size:12px;color:var(--muted);flex-shrink:0}
+.ps-tags{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.build-btn{display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px var(--blue-glow);transition:filter .15s,transform .1s}
+.build-btn:hover{filter:brightness(1.1)}
+.build-btn:active{transform:scale(.97)}
+
+/* ── REFERENCE DRAWER ──────────────────────── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;backdrop-filter:blur(2px)}
+.drawer-overlay.open{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.drawer{position:fixed;top:0;right:-780px;bottom:0;width:780px;max-width:95vw;background:var(--bg2);border-left:1px solid var(--border);z-index:301;display:flex;flex-direction:column;transition:right .3s cubic-bezier(.22,1,.36,1)}
+.drawer.open{right:0}
+.drawer-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.drawer-head h2{font-size:16px;font-weight:700;flex:1}
+.drawer-search{padding:3px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;width:220px}
+.drawer-search:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-dim)}
+.drawer-close{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--sub);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.drawer-close:hover{border-color:var(--red);color:var(--red)}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
+.drawer-body::-webkit-scrollbar{width:4px}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--muted);border-radius:2px}
+/* supervised panel */
+.sup-panel{margin-bottom:16px;border-radius:10px;border:1px solid rgba(210,153,34,.25);background:rgba(210,153,34,.05);overflow:hidden}
+.sup-panel-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:12px;font-weight:600;color:#D29922;user-select:none;transition:background .12s}
+.sup-panel-head:hover{background:rgba(210,153,34,.08)}
+.sup-chevron{font-size:10px;transition:transform .2s;color:var(--muted)}
+.sup-chevron.open{transform:rotate(90deg)}
+.sup-panel-body{padding:4px 14px 14px;border-top:1px solid rgba(210,153,34,.15)}
+.sup-scenario{padding:10px 0;border-bottom:1px solid rgba(210,153,34,.1);margin-bottom:4px}
+.sup-label{font-size:11px;font-weight:700;color:#D29922;margin-bottom:4px}
+.sup-text{font-size:12px;color:rgba(230,210,120,.7);line-height:1.6}
+.ref-table{width:100%;border-collapse:collapse}
+.ref-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left;background:var(--bg);position:sticky;top:0;z-index:1}
+.ref-table td{padding:10px 12px;border-bottom:1px solid var(--border2);vertical-align:top;font-size:12px;line-height:1.55}
+.ref-table tr:hover td{background:var(--card2)}
+.ref-table tr.hidden{display:none}
+.td-name{font-weight:600;color:var(--text);white-space:nowrap}
+.td-type{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:11px;white-space:nowrap}
+.td-legit{color:var(--sub)}
+.td-attack{color:rgba(255,100,100,.8)}
+.risk-badge{display:inline-block;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.risk-critical{background:rgba(248,81,73,.15);color:#FF6B6B;border:1px solid rgba(248,81,73,.3)}
+.risk-high{background:rgba(240,136,62,.12);color:#F0883E;border:1px solid rgba(240,136,62,.25)}
+.risk-medium{background:rgba(210,153,34,.1);color:#D29922;border:1px solid rgba(210,153,34,.25)}
+.risk-info{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(47,129,247,.2)}
+</style>
+</head>
+<body>
+
+<!-- ── TOPBAR ────────────────────────────────────────── -->
+<header class="topbar">
+  <a class="tb-logo" href="/"><img src="/static/logo.jpg?v=1780620484" alt="iOS Profile Builder" style="height:48px;width:auto;border-radius:6px;display:block">iOS Profile Builder</a>
+  <div class="tb-sep"></div>
+  <span class="tb-sub">Apple .mobileconfig assembler</span>
+  <div class="tb-right">
+    <div class="payload-pill" id="payloadPill">⚡ <span id="pillText">0 payloads</span></div>
+    <button class="ref-btn" onclick="openDrawer()">📚 Payload Reference</button>
+  </div>
+</header>
+
+<!-- ── REFERENCE DRAWER ──────────────────────────────── -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h2>📚 Payload Reference</h2>
+    <input class="drawer-search" type="text" placeholder="Search payloads…" oninput="searchRef(this.value)" id="refSearch">
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <!-- sup-panel lives between head and body — not in scroll zone -->
+  <div class="sup-panel" style="flex-shrink:0;border-radius:0;border-left:none;border-right:none;border-top:none;margin:0">
+    <div class="sup-panel-head" onclick="toggleSupPanel()">
+      <span>🔒 When are <span style="background:rgba(210,153,34,.2);padding:1px 6px;border-radius:3px;font-size:11px">supervised</span> payloads useful to an attacker?</span>
+      <span class="sup-chevron" id="supChev">▶</span>
+    </div>
+    <div class="sup-panel-body" id="supBody" style="display:none">
+      <div class="sup-scenario">
+        <div class="sup-label">Scenario A — Corporate device already supervised</div>
+        <div class="sup-text">Employees at companies that provision devices via MDM/DEP already have supervised devices. A malicious profile installed via social engineering will activate all supervised payloads — no extra steps.</div>
+      </div>
+      <div class="sup-scenario">
+        <div class="sup-label">Scenario B — Physical access</div>
+        <div class="sup-text">Apple Configurator 2 + USB connection = supervise any device on the spot. Relevant for supply chain attacks, stolen device scenarios, or evil-maid engagements.</div>
+      </div>
+      <div class="sup-scenario">
+        <div class="sup-label">Scenario C — DEP Hijacking</div>
+        <div class="sup-text">During corporate device provisioning (ADE/Zero-Touch), there is a window to register the device against an attacker-controlled MDM server instead of the company's. Device enrolls into attacker infra on first boot — fully supervised from day one.</div>
+      </div>
+      <div class="sup-scenario" style="border:none;margin:0;padding-bottom:0">
+        <div class="sup-label">Scenario D — MDM escalation to supervision</div>
+        <div class="sup-text">Once an MDM profile is installed, the MDM server can escalate the device to supervised mode. Every supervised payload then becomes available for remote push without re-installing a profile.</div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-body">
+    <table class="ref-table" id="refTable">
+      <thead>
+        <tr>
+          <th>Payload</th>
+          <th>PayloadType</th>
+          <th>Risk</th>
+          <th>Legitimate Use</th>
+          <th>Attacker / Red-Team Angle</th>
+        </tr>
+      </thead>
+      <tbody id="refBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── IMPORT / ANALYZE DRAWER ────────────────────────────── -->
+<div class="drawer-overlay" id="importOverlay" onclick="closeImport()"></div>
+<div class="drawer" id="importDrawer">
+  <div class="drawer-head">
+    <h2>📂 Profile Analysis</h2>
+    <button class="drawer-close" onclick="closeImport()">✕</button>
+  </div>
+  <div class="drawer-body" id="importBody"></div>
+</div>
+
+<div class="layout">
+
+<!-- ── SIDEBAR ───────────────────────────────────────── -->
+<nav class="sidebar">
+  <div class="sb-group-label">Profile</div>
+  <div class="sb-item active" onclick="goTo('sec-meta');setActive(this)"><span class="sb-icon">📋</span><span class="sb-label">Metadata</span></div>
+
+  <div class="sb-group-label">Payloads</div>
+  <div class="sb-item" onclick="goTo('sec-webclip');setActive(this)"><span class="sb-icon">🌐</span><span class="sb-label">Web Clip</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-webclip" onchange="toggleSec('webclip',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-wifi');setActive(this)"><span class="sb-icon">📶</span><span class="sb-label">Wi-Fi</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-wifi" onchange="toggleSec('wifi',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-vpn');setActive(this)"><span class="sb-icon">🔒</span><span class="sb-label">VPN</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-vpn" onchange="toggleSec('vpn',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-dns');setActive(this)"><span class="sb-icon">🌍</span><span class="sb-label">DNS Settings</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-dns" onchange="toggleSec('dns',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-proxy');setActive(this)"><span class="sb-icon">🔀</span><span class="sb-label">HTTP Proxy</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-proxy" onchange="toggleSec('proxy',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-ca');setActive(this)"><span class="sb-icon">🏛️</span><span class="sb-label">Root CA</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-ca" onchange="toggleSec('ca',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-mail');setActive(this)"><span class="sb-icon">✉️</span><span class="sb-label">Mail / Exchange</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-mail" onchange="toggleSec('mail',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-restrict');setActive(this)"><span class="sb-icon">🚫</span><span class="sb-label">Restrictions</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-restrict" onchange="toggleSec('restrict',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-mdm');setActive(this)"><span class="sb-icon">📡</span><span class="sb-label">MDM</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-mdm" onchange="toggleSec('mdm',this)"><span class="tog-s"></span></label></div>
+  <div class="sb-item" onclick="goTo('sec-custom');setActive(this)"><span class="sb-icon">🔧</span><span class="sb-label">Custom XML</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-custom" onchange="toggleSec('custom',this)"><span class="tog-s"></span></label></div>
+
+  <div class="sb-divider"></div>
+  <div class="sb-group-label">Options</div>
+  <div class="sb-item" onclick="goTo('sec-signing');setActive(this)"><span class="sb-icon">✍️</span><span class="sb-label">Signing</span></div>
+
+  <div class="sb-divider"></div>
+  <div class="sb-combos">
+    <div class="sb-combos-title">⚡ Power Combos</div>
+    <div class="sb-combo"><strong>Full MITM</strong>Root CA + Wi-Fi + VPN → plaintext TLS</div>
+    <div class="sb-combo"><strong>Phishing App</strong>WebClip (FullScreen) + Root CA → no URL bar, trusted cert</div>
+    <div class="sb-combo"><strong>Silent DNS</strong>DNS Settings + VPN → covert C2 / exfil</div>
+    <div class="sb-combo"><strong>Device Takeover</strong>MDM + Root CA + VPN → full remote control</div>
+    <div class="sb-combo"><strong>Corp Pivot</strong>Wi-Fi (Enterprise) + HTTP Proxy → route through attacker</div>
+  </div>
+</nav>
+
+<!-- ── MAIN ──────────────────────────────────────────── -->
+<main class="main">
+  {% if error %}<div class="error-box">⚠️&nbsp; {{ error }}</div>{% endif %}
+
+  <div class="tpl-bar">
+    <span class="tpl-label">Templates:</span>
+    <button type="button" class="tpl-btn" onclick="loadTpl('webclip',this)">🌐 WebClip</button>
+    <button type="button" class="tpl-btn" onclick="loadTpl('mitm',this)">🎯 Full MITM</button>
+    <button type="button" class="tpl-btn" onclick="loadTpl('wifi',this)">📶 Wi-Fi</button>
+    <button type="button" class="tpl-btn" onclick="loadTpl('mdm',this)">📡 Full MDM</button>
+    <button type="button" class="tpl-btn" onclick="loadTpl('all',this)">✦ All payloads</button>
+    <button type="button" class="tpl-btn" onclick="loadTpl('blank',this)">✕ Clear</button>
+    <span style="width:1px;height:18px;background:var(--border);display:inline-block;margin:0 4px;vertical-align:middle"></span>
+    <button type="button" class="tpl-btn" style="border-color:rgba(63,185,80,.4);color:var(--green)" onclick="document.getElementById('importFileInput').click()">📂 Import</button>
+    <input type="file" id="importFileInput" accept=".mobileconfig,application/x-apple-aspen-config" style="display:none" onchange="handleImport(this)">
+  </div>
+
+  <form method="POST" action="/build" enctype="multipart/form-data" id="buildForm">
+
+  <!-- METADATA -->
+  <div class="section" id="sec-meta">
+    <div class="sec-head no-bb"><span class="sh-icon">📋</span><span class="sh-title">Profile Metadata</span><div class="sh-meta"><span class="badge b-blue">required</span></div></div>
+    <div class="sec-body open">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">PayloadDisplayName</label><input type="text" name="profile_display_name" value="Configuration Profile" placeholder="My Corporate Profile"></div>
+        <div class="field-group"><label class="fl">PayloadIdentifier</label><input type="text" name="profile_identifier" value="com.example.profile" placeholder="com.corp.profile"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Organization</label><input type="text" name="profile_organization" placeholder="Acme Corp"></div>
+        <div class="field-group"><label class="fl">Output filename</label><input type="text" name="profile_filename" value="profile" placeholder="my-profile"><div class="hint">Extension <span class="code">.mobileconfig</span> appended automatically</div></div>
+      </div>
+      <div class="field-group"><label class="fl">Description</label><input type="text" name="profile_description" placeholder="Shown during install"></div>
+      <div class="field-group"><label class="fl">ConsentText <span style="font-weight:400;text-transform:none;color:var(--muted)">(optional)</span></label><textarea name="profile_consent" placeholder="Consent message shown before install."></textarea></div>
+    </div>
+  </div>
+
+  <!-- WEBCLIP -->
+  <div class="section inactive" id="sec-webclip">
+    <div class="sec-head" onclick="toggleCollapse('webclip')"><span class="sh-icon">🌐</span><span class="sh-title">Web Clip</span><div class="sh-meta"><span class="code">com.apple.webClip.managed</span></div><span class="sh-chevron" id="chev-webclip">▶</span></div>
+    <div class="sec-body" id="body-webclip">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Label</label><input type="text" name="webclip_label_0" id="webclip_label_0" placeholder="My App"></div>
+        <div class="field-group"><label class="fl">URL</label><input type="url" name="webclip_url_0" id="webclip_url_0" placeholder="https://app.example.com"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Icon (PNG)</label><input type="file" name="webclip_icon_0" accept="image/png"><div class="hint">57×57 or 114×114 px recommended.</div></div>
+        <div><div class="chk-row" style="margin-top:22px"><label class="chk-item"><input type="checkbox" name="webclip_removable_0" id="wc_rm" checked><span>Removable</span></label><label class="chk-item"><input type="checkbox" name="webclip_fullscreen_0" id="wc_fs"><span>Full Screen</span></label></div><div class="hint" style="margin-top:6px">Full Screen removes Safari URL bar — looks native.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-webclip"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>FullScreen phishing:</strong> No URL bar → victim can't distinguish from a real app</li><li><strong>Credential harvest:</strong> Serve a login mirror (banking, HR portal, SSO)</li><li><strong>Permission grabber:</strong> Page requests camera, mic, GPS on load</li><li><strong>Persistence:</strong> Survives Safari cache clears, lives on Home Screen</li></ul><div class="tip-combo">💡 + Root CA → HTTPS page with green lock and no warnings</div></div></div>
+
+  <!-- WI-FI -->
+  <div class="section inactive" id="sec-wifi">
+    <div class="sec-head" onclick="toggleCollapse('wifi')"><span class="sh-icon">📶</span><span class="sh-title">Wi-Fi</span><div class="sh-meta"><span class="code">com.apple.wifi.managed</span></div><span class="sh-chevron" id="chev-wifi">▶</span></div>
+    <div class="sec-body" id="body-wifi">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">SSID</label><input type="text" name="wifi_ssid_0" placeholder="CorpNetwork"></div>
+        <div class="field-group"><label class="fl">Encryption</label>
+          <select name="wifi_encryption_0" id="wifi_enc" onchange="updateWifiFields()">
+            <option value="WPA2">WPA2 Personal</option>
+            <option value="WPA3">WPA3 Personal (SAE)</option>
+            <option value="WPA">WPA Personal (legacy)</option>
+            <option value="WPA2Enterprise">WPA2 Enterprise (802.1X)</option>
+            <option value="WEP">WEP (legacy)</option>
+            <option value="None">Open (no auth)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group" id="wifi-pass-wrap"><label class="fl">Password</label><input type="text" name="wifi_password_0" placeholder="••••••••"></div>
+      <div class="sub-section" id="wifi-eap">
+        <div class="row-2">
+          <div class="field-group"><label class="fl">EAP Type</label><select name="wifi_eap_type_0"><option>PEAP</option><option>EAP-TLS</option><option>EAP-TTLS</option><option>EAP-FAST</option><option>LEAP</option></select></div>
+          <div class="field-group"><label class="fl">Outer Identity</label><input type="text" name="wifi_outer_id_0" placeholder="anonymous@corp.com"></div>
+        </div>
+        <div class="row-2">
+          <div class="field-group"><label class="fl">Username</label><input type="text" name="wifi_eap_user_0" placeholder="user@corp.com"></div>
+          <div class="field-group"><label class="fl">Password</label><input type="password" name="wifi_eap_pass_0"></div>
+        </div>
+        <div class="hint">Preload 802.1X credentials — device authenticates silently with attacker EAP server.</div>
+      </div>
+      <div class="chk-row"><label class="chk-item"><input type="checkbox" name="wifi_autojoin_0" id="wf_aj" checked><span>Auto-join</span></label><label class="chk-item"><input type="checkbox" name="wifi_hidden_0" id="wf_hd"><span>Hidden network</span></label></div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-wifi"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Rogue AP:</strong> Push SSID + PSK for attacker-controlled AP — auto-joins silently</li><li><strong>802.1X cred harvest:</strong> WPA2-Enterprise with attacker RADIUS → captures MSCHAPv2/NTLM</li><li><strong>Hidden AP:</strong> Never appears in Settings Wi-Fi list</li><li><strong>Auto-join:</strong> Zero user interaction — connects the moment in range</li></ul><div class="tip-combo">💡 + VPN → force all traffic through attacker tunnel after join</div></div></div>
+
+  <!-- VPN -->
+  <div class="section inactive" id="sec-vpn">
+    <div class="sec-head" onclick="toggleCollapse('vpn')"><span class="sh-icon">🔒</span><span class="sh-title">VPN</span><div class="sh-meta"><span class="code">com.apple.vpn.managed</span></div><span class="sh-chevron" id="chev-vpn">▶</span></div>
+    <div class="sec-body" id="body-vpn">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Connection Name</label><input type="text" name="vpn_name_0" placeholder="Corp VPN"></div>
+        <div class="field-group"><label class="fl">Server / Remote Address</label><input type="text" name="vpn_server_0" placeholder="vpn.example.com"></div>
+      </div>
+      <div class="row-3">
+        <div class="field-group"><label class="fl">VPN Type</label><select name="vpn_type_0"><option>IKEv2</option><option>IPSec</option><option>L2TP</option></select></div>
+        <div class="field-group"><label class="fl">Auth Method</label><select name="vpn_auth_0"><option>SharedSecret</option><option>Certificate</option><option>Password</option></select></div>
+        <div class="field-group"><label class="fl">Shared Secret</label><input type="text" name="vpn_shared_secret_0" placeholder="optional"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-vpn"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Full traffic capture:</strong> IKEv2 to attacker server → see all DNS, HTTP, metadata</li><li><strong>On-Demand VPN:</strong> Auto-reconnects on every network change — persistent exfil</li><li><strong>Corp impersonation:</strong> Mimic IT VPN config — employee connects thinking it's legitimate</li></ul><div class="tip-combo">💡 + Root CA → decrypt all TLS inside the tunnel = full plaintext MITM</div></div></div>
+
+  <!-- DNS -->
+  <div class="section inactive" id="sec-dns">
+    <div class="sec-head" onclick="toggleCollapse('dns')"><span class="sh-icon">🌍</span><span class="sh-title">DNS Settings</span><div class="sh-meta"><span class="code">com.apple.dnsSettings.managed</span></div><span class="sh-chevron" id="chev-dns">▶</span></div>
+    <div class="sec-body" id="body-dns">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">DNS Protocol</label><select name="dns_protocol_0"><option value="https">DNS-over-HTTPS (DoH)</option><option value="tls">DNS-over-TLS (DoT)</option></select></div>
+        <div class="field-group"><label class="fl">Server URL / Hostname</label><input type="text" name="dns_server_0" placeholder="https://dns.example.com/dns-query"></div>
+      </div>
+      <div class="field-group"><label class="fl">Server Addresses (comma-separated)</label><input type="text" name="dns_addresses_0" placeholder="1.1.1.1, 1.0.0.1"></div>
+      <div class="field-group">
+        <label class="fl">On-Demand Rules</label>
+        <textarea name="dns_custom_xml_0" placeholder="Optional: raw plist XML for OnDemandRules" style="min-height:60px"></textarea>
+      </div>
+      <div class="hint">Pushed as <span class="code">com.apple.dnsSettings.managed</span> via custom XML. Requires iOS 14+.</div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-dns"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Silent MITM:</strong> Redirect name resolution → control what domains resolve where</li><li><strong>Covert C2:</strong> DNS-over-HTTPS to attacker server — blends into normal HTTPS traffic</li><li><strong>Exfil channel:</strong> DNS tunneling over a managed DoH resolver</li><li><strong>Block security tools:</strong> Resolve threat-intel feeds / AV update servers to 0.0.0.0</li></ul><div class="tip-combo">💡 + VPN (On-Demand) → DNS hijacking + full tunnel = covert persistent access</div></div></div>
+
+  <!-- HTTP PROXY -->
+  <div class="section inactive" id="sec-proxy">
+    <div class="sec-head" onclick="toggleCollapse('proxy')"><span class="sh-icon">🔀</span><span class="sh-title">Global HTTP Proxy</span><div class="sh-meta"><span class="code">com.apple.proxy.http.global</span><span class="badge b-red" style="margin-left:4px">supervised</span></div><span class="sh-chevron" id="chev-proxy">▶</span></div>
+    <div class="sec-body" id="body-proxy">
+      <div class="warn-box">⚠️ <strong>Supervised devices only.</strong> Requires MDM + Supervision (DEP or Apple Configurator). Unsupervised devices will silently ignore this payload.</div>
+      <div class="row-2" style="margin-top:14px">
+        <div class="field-group"><label class="fl">Proxy Type</label><select name="proxy_type_0"><option>Manual</option><option>Auto (PAC)</option></select></div>
+        <div class="field-group"><label class="fl">Proxy Server</label><input type="text" name="proxy_server_0" placeholder="proxy.example.com"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Port</label><input type="text" name="proxy_port_0" placeholder="8080"></div>
+        <div class="field-group"><label class="fl">PAC URL (if Auto)</label><input type="url" name="proxy_pac_0" placeholder="https://example.com/proxy.pac"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Proxy Username</label><input type="text" name="proxy_user_0"></div>
+        <div class="field-group"><label class="fl">Proxy Password</label><input type="password" name="proxy_pass_0"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-proxy"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Classic MITM:</strong> All HTTP(S) routed through Burp/ZAP/mitmproxy on attacker server</li><li><strong>Passive surveillance:</strong> Log browsing without touching DNS or routes</li><li><strong>PAC file control:</strong> Auto-proxy URL → dynamically change routing via PAC updates</li><li>⚠️ Requires supervision — useful in MDM context or when targeting supervised corporate devices</li></ul><div class="tip-combo">💡 + Root CA → attacker proxy with trusted cert = zero-warning HTTPS interception</div></div></div>
+
+  <!-- ROOT CA -->
+  <div class="section inactive" id="sec-ca">
+    <div class="sec-head" onclick="toggleCollapse('ca')"><span class="sh-icon">🏛️</span><span class="sh-title">Root CA</span><div class="sh-meta"><span class="code">com.apple.security.root</span><span class="badge b-yellow" style="margin-left:4px">⚠ High impact</span></div><span class="sh-chevron" id="chev-ca">▶</span></div>
+    <div class="sec-body" id="body-ca">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Certificate Name</label><input type="text" name="ca_name_0" id="ca_name_0" placeholder="Corp Root CA"></div>
+        <div class="field-group"><label class="fl">Filename inside profile</label><input type="text" name="ca_filename_0" value="rootca.cer"></div>
+      </div>
+      <div class="field-group"><label class="fl">Upload .pem / .der / .cer</label><input type="file" name="ca_file_0"><div class="hint">Upload takes priority over paste below.</div></div>
+      <div class="field-group"><label class="fl">Or paste PEM</label><textarea name="ca_pem_0" id="ca_pem_0" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"></textarea></div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-ca"><div class="tip-title">🎯 Red-Team Angle — Most Powerful Single Payload</div><div class="tip-body"><ul><li><strong>TLS MITM:</strong> Device trusts attacker CA → all HTTPS shows green lock, no warning</li><li><strong>App traffic decryption:</strong> Banking apps, mail clients, corporate SSO — all visible</li><li><strong>Cert pinning bypass:</strong> Some apps skip pinning for system-trusted CAs</li><li><strong>Pentest tool:</strong> Install Burp Suite CA for mobile traffic inspection</li></ul><div class="tip-combo">💡 Full MITM combo: Root CA + Wi-Fi (your AP) + VPN (your server) = everything in plaintext</div></div></div>
+
+  <!-- MAIL / EXCHANGE -->
+  <div class="section inactive" id="sec-mail">
+    <div class="sec-head" onclick="toggleCollapse('mail')"><span class="sh-icon">✉️</span><span class="sh-title">Mail / Exchange</span><div class="sh-meta"><span class="code">com.apple.mail.managed</span> / <span class="code">com.apple.eas.account</span></div><span class="sh-chevron" id="chev-mail">▶</span></div>
+    <div class="sec-body" id="body-mail">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Account Type</label><select name="mail_type_0" id="mail_type" onchange="updateMailFields()"><option value="imap">IMAP</option><option value="exchange">Exchange ActiveSync</option></select></div>
+        <div class="field-group"><label class="fl">Account Name</label><input type="text" name="mail_name_0" placeholder="Corporate Mail"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Email Address</label><input type="email" name="mail_email_0" placeholder="user@corp.com"></div>
+        <div class="field-group"><label class="fl">Username</label><input type="text" name="mail_user_0" placeholder="CORP\user"></div>
+      </div>
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Password</label><input type="password" name="mail_pass_0"></div>
+        <div class="field-group"><label class="fl" id="mail-server-label">Incoming Mail Server</label><input type="text" name="mail_server_0" id="mail_server_inp" placeholder="mail.example.com"></div>
+      </div>
+      <div class="sub-section" id="mail-imap-extra">
+        <div class="row-3">
+          <div class="field-group"><label class="fl">Incoming Port</label><input type="text" name="mail_in_port_0" placeholder="993"></div>
+          <div class="field-group"><label class="fl">Outgoing Server (SMTP)</label><input type="text" name="mail_smtp_0" placeholder="smtp.example.com"></div>
+          <div class="field-group"><label class="fl">Outgoing Port</label><input type="text" name="mail_out_port_0" placeholder="587"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-mail"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Mail redirection:</strong> Point account to attacker IMAP/Exchange → harvest all email in background</li><li><strong>Credential capture:</strong> Pre-fill username, leave password blank → iOS prompts user, logs it</li><li><strong>Exchange pivot:</strong> Auto-sync contacts, calendar, tasks from corporate Exchange → full org recon</li><li><strong>OAuth phishing:</strong> Google account variant (com.apple.google-oauth) for token grab</li></ul><div class="tip-combo">💡 + Root CA → attacker mail server with valid TLS = no connection warnings</div></div></div>
+
+  <!-- RESTRICTIONS -->
+  <div class="section inactive" id="sec-restrict">
+    <div class="sec-head" onclick="toggleCollapse('restrict')"><span class="sh-icon">🚫</span><span class="sh-title">Restrictions</span><div class="sh-meta"><span class="code">com.apple.applicationaccess</span></div><span class="sh-chevron" id="chev-restrict">▶</span></div>
+    <div class="sec-body" id="body-restrict">
+      <div class="field-group"><label class="fl">Security posture</label>
+        <div class="chk-row">
+          <label class="chk-item"><input type="checkbox" name="restrict_camera_0"><span>Disable Camera</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_safari_0"><span>Disable Safari</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_airdrop_0"><span>Disable AirDrop</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_icloud_0"><span>Disable iCloud Backup</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_appinstall_0"><span>Disable App Install</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_screenshot_0"><span>Disable Screenshot</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_vpn_0"><span>Allow VPN Config</span></label>
+          <label class="chk-item"><input type="checkbox" name="restrict_lockscreen_0"><span>Disable Lock Screen Widgets</span></label>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="fl">Raw Restriction XML <span style="font-weight:400;text-transform:none;color:var(--muted)">(advanced — merged into payload)</span></label>
+        <textarea name="restrict_xml_0" style="min-height:70px" placeholder="<key>allowCamera</key><false/>&#10;<key>allowAirDrop</key><false/>"></textarea>
+      </div>
+      <div class="hint">Restrictions are serialized as <span class="code">com.apple.applicationaccess</span> plist keys. Supervision may be required for some keys.</div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-restrict"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Security degradation:</strong> Disable VPN toggle → lock victim into attacker-controlled routes</li><li><strong>Malicious DoS:</strong> Disable App Install + Safari + AirDrop = severely degraded device</li><li><strong>Anti-forensics:</strong> Disable screenshot + screen recording → victim can't document</li><li><strong>Loosen defenses:</strong> Allow untrusted app sources to enable sideloading</li></ul><div class="tip-combo">💡 + MDM → dynamically change restrictions remotely without re-installing profile</div></div></div>
+
+  <!-- MDM -->
+  <div class="section inactive" id="sec-mdm">
+    <div class="sec-head" onclick="toggleCollapse('mdm')"><span class="sh-icon">📡</span><span class="sh-title">MDM Enrollment</span><div class="sh-meta"><span class="badge b-yellow">⚠ Full device control</span></div><span class="sh-chevron" id="chev-mdm">▶</span></div>
+    <div class="sec-body" id="body-mdm">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">ServerURL</label><input type="url" name="mdm_server_url_0" id="mdm_server_url_0" placeholder="https://mdm.example.com/mdm"></div>
+        <div class="field-group"><label class="fl">CheckInURL <span style="font-weight:400;text-transform:none;color:var(--muted)">(opt)</span></label><input type="url" name="mdm_checkin_url_0"></div>
+      </div>
+      <div class="row-3">
+        <div class="field-group"><label class="fl">Topic (APNs)</label><input type="text" name="mdm_topic_0" id="mdm_topic_0" placeholder="com.apple.mgmt.External.…"></div>
+        <div class="field-group"><label class="fl">AccessRights bitmask</label><input type="text" name="mdm_access_rights_0" value="8191"><div class="hint">8191 = full rights</div></div>
+        <div class="field-group"><label class="fl">Identity Cert UUID</label><input type="text" name="mdm_identity_uuid_0"></div>
+      </div>
+      <div class="chk-row"><label class="chk-item"><input type="checkbox" name="mdm_checkout_0" id="mdm_co" checked><span>CheckOutWhenRemoved</span></label><label class="chk-item"><input type="checkbox" name="mdm_signmessage_0" id="mdm_sm"><span>SignMessage</span></label></div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-mdm"><div class="tip-title">🎯 Red-Team Angle — Maximum Access</div><div class="tip-body"><ul><li><strong>Remote wipe/lock:</strong> Silently wipe or lock the device on command</li><li><strong>App install/removal:</strong> Push or remove any app over-the-air</li><li><strong>Silent inventory:</strong> Query IMEI, serial, installed apps, last location, battery</li><li><strong>Corp impersonation:</strong> Pose as IT during onboarding — employee enrolls willingly</li><li><strong>Supervision gateway:</strong> MDM can escalate device to supervised mode → unlocks HTTP proxy + more</li><li style="color:#FF6B6B"><strong>⚠️ One MDM per device:</strong> iOS rejects a second MDM if one is already active. Vectors: DEP hijacking (before first boot) or social-engineer removal of existing MDM. Multiple non-MDM profiles can coexist freely.</li></ul><div class="tip-combo">💡 + Root CA + VPN → MDM commands + full traffic interception = complete takeover</div></div></div>
+
+  <!-- CUSTOM XML -->
+  <div class="section inactive" id="sec-custom">
+    <div class="sec-head" onclick="toggleCollapse('custom')"><span class="sh-icon">🔧</span><span class="sh-title">Custom Payload</span><div class="sh-meta"><span class="badge b-blue">raw plist</span></div><span class="sh-chevron" id="chev-custom">▶</span></div>
+    <div class="sec-body" id="body-custom">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Display Name</label><input type="text" name="custom_name_0" placeholder="My Custom Payload"></div>
+        <div class="field-group"><label class="fl">PayloadType</label><input type="text" name="custom_type_0" placeholder="com.apple.example"></div>
+      </div>
+      <div class="field-group"><label class="fl">Raw plist XML</label><textarea name="custom_xml_0" style="min-height:130px" placeholder="<dict>&#10;  <key>PayloadType</key>&#10;  <string>com.apple.example</string>&#10;</dict>"></textarea><div class="hint">Required Payload* keys auto-filled if missing.</div></div>
+    </div>
+  </div>
+  <div class="tip-card" id="tip-custom"><div class="tip-title">🎯 Notable Payload Types</div><div class="tip-body"><ul><li><span class="code">com.apple.sso</span> — SSO extension → insert attacker IdP into auth path</li><li><span class="code">com.apple.caldav.account</span> — Calendar → sync org structure to attacker server</li><li><span class="code">com.apple.security.scep</span> — Auto-enroll device cert into attacker PKI</li><li><span class="code">com.apple.security.pkcs12</span> — Push client identity cert for mutual-TLS auth</li><li><span class="code">com.apple.relay.managed</span> — Insert attacker network relay into traffic path</li></ul></div></div>
+
+  <!-- SIGNING -->
+  <div class="section" id="sec-signing">
+    <div class="sec-head" onclick="toggleCollapse('signing')"><span class="sh-icon">✍️</span><span class="sh-title">Code Signing</span><div class="sh-meta"><span class="badge b-blue">optional</span></div><span class="sh-chevron" id="chev-signing">▶</span></div>
+    <div class="sec-body" id="body-signing">
+      <div class="row-2">
+        <div class="field-group"><label class="fl">Signing certificate (.p12)</label><input type="file" name="signing_p12" accept=".p12,.pfx"></div>
+        <div class="field-group"><label class="fl">.p12 password</label><input type="password" name="signing_password" placeholder="leave blank if none"></div>
+      </div>
+      {% if not openssl %}<div class="warn-box">⚠️ openssl not found — profile will be unsigned.</div>
+      {% else %}<div class="info-box">ℹ️ CMS-signed via <span class="code">openssl smime</span>. Status returned in <span class="code">X-Profile-Signing-Status</span> header.</div>{% endif %}
+    </div>
+  </div>
+
+  </form>
+</main>
+</div>
+
+<!-- STICKY BUILD BAR -->
+<div class="build-bar">
+  <span class="ps-label">Active:</span>
+  <div class="ps-tags" id="psTags"><span class="badge b-blue">Profile only</span></div>
+  <button type="submit" class="build-btn" form="buildForm">⬇ Build .mobileconfig</button>
+</div>
+
+<script>
+// ── Reference data ─────────────────────────────────────────────
+var REF_DATA=[
+  {name:'Wi-Fi',type:'com.apple.wifi.managed',risk:'high',legit:'Auto-join corporate/known networks without manual setup',attack:'Push rogue/auto-join SSID; preload attacker EAP server to harvest 802.1X creds; force connection to controlled AP'},
+  {name:'VPN',type:'com.apple.vpn.managed',risk:'high',legit:'Tunnel traffic to corporate network',attack:'On-Demand VPN = persistence + full traffic redirection through attacker infra'},
+  {name:'App-Layer VPN',type:'com.apple.vpn.managed.applayer',risk:'medium',legit:'Scope VPN to specific managed apps',attack:'Selective interception of targeted app traffic — harder to notice than device-wide VPN'},
+  {name:'Global HTTP Proxy',type:'com.apple.proxy.http.global',risk:'critical',legit:'Org-wide content control (supervised)',attack:'Route all web traffic through attacker proxy — classic MITM, requires supervision'},
+  {name:'DNS Settings',type:'com.apple.dnsSettings.managed',risk:'high',legit:'Enterprise DNS, filtering, DoH/DoT',attack:'Redirect name resolution; silent MITM; covert exfil/C2 channel via DNS'},
+  {name:'DNS Proxy',type:'com.apple.dnsProxy.managed',risk:'high',legit:'DNS proxy for enterprise filtering',attack:'Intercept DNS queries at proxy level; supervised only'},
+  {name:'Relay',type:'com.apple.relay.managed',risk:'medium',legit:'Zero-trust network access',attack:'Insert attacker relay into traffic path silently'},
+  {name:'Web Content Filter',type:'com.apple.webcontent-filter',risk:'medium',legit:'Parental/enterprise web filtering',attack:'Inspect or redirect browsing; foundation for surveillance'},
+  {name:'Root CA',type:'com.apple.security.root',risk:'critical',legit:'Trust internal PKI',attack:'Install attacker root CA → full TLS interception; user sees green lock'},
+  {name:'PKCS#12 Identity',type:'com.apple.security.pkcs12',risk:'high',legit:'Push client identity cert',attack:'Force device to authenticate with attacker-controlled cert to internal services'},
+  {name:'SCEP',type:'com.apple.security.scep',risk:'high',legit:'Scalable cert issuance',attack:'Enroll device identity into attacker PKI; foothold for mutual-TLS'},
+  {name:'ACME',type:'com.apple.security.acme',risk:'high',legit:'Modern automated cert enrollment',attack:'Same enrollment-abuse surface as SCEP with attested hardware keys'},
+  {name:'Certificate Revocation',type:'com.apple.security.certificaterevocation',risk:'medium',legit:'Control OCSP/CRL policy',attack:'Weaken revocation checking to keep a malicious cert alive'},
+  {name:'Passcode Policy',type:'com.apple.mobiledevice.passwordpolicy',risk:'medium',legit:'Enforce security baseline',attack:'Weaken policy for easier brute-force, or force lockout (DoS)'},
+  {name:'Restrictions',type:'com.apple.applicationaccess',risk:'high',legit:'Disable camera, installs, iCloud, Safari',attack:'Degrade security posture; lock out VPN toggle; disable screenshot/AirDrop'},
+  {name:'SSO',type:'com.apple.sso',risk:'high',legit:'Seamless auth to internal apps',attack:'Insert attacker IdP into auth path → token/credential interception'},
+  {name:'Extensible SSO',type:'com.apple.extensiblesso',risk:'critical',legit:'Custom SSO extension (needs MDM)',attack:'MDM-installed extension intercepts all SSO flows across apps'},
+  {name:'Mail (IMAP)',type:'com.apple.mail.managed',risk:'high',legit:'Provision corporate mail',attack:'Point to attacker IMAP server; harvest/relay messages; credential capture'},
+  {name:'Exchange ActiveSync',type:'com.apple.eas.account',risk:'high',legit:'Corporate email/calendar',attack:'Redirect email + calendar + contacts to attacker Exchange; full org recon'},
+  {name:'Google Account',type:'com.apple.google-oauth',risk:'medium',legit:'Provision Workspace',attack:'OAuth phishing / token-grab framing'},
+  {name:'CalDAV',type:'com.apple.caldav.account',risk:'medium',legit:'Calendar provisioning',attack:'Data exfil of calendar entries; org meeting schedule recon'},
+  {name:'CardDAV',type:'com.apple.carddav.account',risk:'medium',legit:'Contacts provisioning',attack:'Harvest full contact list including personal numbers and email'},
+  {name:'LDAP',type:'com.apple.ldap.account',risk:'medium',legit:'Directory provisioning',attack:'Point to attacker LDAP; harvest org-structure queries and exposed attributes'},
+  {name:'Web Clip',type:'com.apple.webClip.managed',risk:'high',legit:'Home Screen web app shortcut',attack:'Plant fake "app" icon → phishing launcher that looks native, no URL bar in FullScreen'},
+  {name:'MDM Enrollment',type:'com.apple.mdm',risk:'critical',legit:'Full device management',attack:'Remote wipe/lock, app install/removal, silent inventory, supervision escalation. ⚠️ Only ONE MDM allowed per device — second enrollment is rejected by iOS.'},
+  {name:'Ethernet',type:'com.apple.*ethernet*',risk:'medium',legit:'Managed wired endpoints',attack:'Same MITM / rogue-network logic as Wi-Fi on wired adapters'},
+  {name:'Associated Domains',type:'com.apple.associated-domains',risk:'medium',legit:'Universal links, autofill',attack:'Hijack universal-link routing or password autofill association to attacker domain'},
+  {name:'App Lock (ASAM)',type:'com.apple.app.lock',risk:'high',legit:'Kiosk / single-app mode for POS/kiosks',attack:'Lock device to one app; disables Home button/Control Center — DEP/supervised only',supervised:true},
+  {name:'Home Screen Layout',type:'com.apple.homescreenlayout',risk:'medium',legit:'Corporate device app arrangement',attack:'Bury security tools; surface attacker WebClip; confuse user interface — supervised only',supervised:true},
+  {name:'Lock Screen Message',type:'com.apple.screensharing.agent',risk:'medium',legit:'IT contact info on locked device',attack:'Impersonate IT on lock screen for social-engineering pretexts — supervised only',supervised:true},
+  {name:'Setup Assistant Skip',type:'com.apple.setupassistant.managed',risk:'high',legit:'Skip onboarding steps during ADE enrollment',attack:'Bypass activation lock, location consent, Terms — stealth ADE enrollment',supervised:true},
+  {name:'Notifications Policy',type:'com.apple.notificationsettings',risk:'medium',legit:'Push notification management for managed apps',attack:'Suppress security alerts; force-enable attacker app banners — supervised only',supervised:true},
+  {name:'AirPlay Security',type:'com.apple.airplay',risk:'medium',legit:'Restrict AirPlay to trusted displays',attack:'Force AirPlay to attacker-controlled screen for passive mirroring/surveillance',supervised:true},
+  {name:'AirPrint',type:'com.apple.airprint',risk:'low',legit:'Pre-configure corporate printers',attack:'Route print jobs to attacker server for document interception'},
+  {name:'Fonts',type:'com.apple.font',risk:'low',legit:'Deploy brand/custom fonts to managed fleet',attack:'Historically exploitable font-parsing surface; delivery vector for malformed font CVEs'},
+];
+
+// Build table
+(function(){
+  var tbody=document.getElementById('refBody');
+  REF_DATA.forEach(function(r){
+    var tr=document.createElement('tr');
+    var riskLabel={critical:'CRITICAL',high:'HIGH',medium:'MEDIUM',info:'INFO'}[r.risk]||r.risk;
+    var riskCls='risk-'+r.risk;
+    var supBadge=r.supervised?'<span style="display:inline-block;margin-left:5px;font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);color:#D29922;vertical-align:middle">supervised</span>':'';
+    tr.innerHTML='<td class="td-name">'+r.name+supBadge+'</td><td class="td-type"><span class="code">'+r.type+'</span></td><td><span class="risk-badge '+riskCls+'">'+riskLabel+'</span></td><td class="td-legit">'+r.legit+'</td><td class="td-attack">'+r.attack+'</td>';
+    tbody.appendChild(tr);
+  });
+})();
+
+function searchRef(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#refBody tr').forEach(function(tr){
+    tr.classList.toggle('hidden',q&&!tr.textContent.toLowerCase().includes(q));
+  });
+}
+function toggleSupPanel(){var b=document.getElementById('supBody'),c=document.getElementById('supChev');var open=b.style.display==='block';b.style.display=open?'none':'block';c.classList.toggle('open',!open)}
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('overlay').classList.add('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('open');document.getElementById('refSearch').value='';searchRef('')}
+
+// ── UI helpers ─────────────────────────────────────────────────
+var PAYLOADS={webclip:'🌐 WebClip',wifi:'📶 Wi-Fi',vpn:'🔒 VPN',dns:'🌍 DNS',proxy:'🔀 Proxy',ca:'🏛️ Root CA',mail:'✉️ Mail',restrict:'🚫 Restrictions',mdm:'📡 MDM',custom:'🔧 Custom'};
+function setActive(el){document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));el.classList.add('active')}
+function goTo(id){var e=document.getElementById(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
+
+function toggleSec(key,tog){
+  var sec=document.getElementById('sec-'+key);
+  var body=document.getElementById('body-'+key);
+  var tip=document.getElementById('tip-'+key);
+  var chev=document.getElementById('chev-'+key);
+  if(tog.checked){sec.classList.remove('inactive');if(body){body.classList.add('open');if(chev)chev.classList.add('open');}if(tip)tip.classList.add('show');}
+  else{sec.classList.add('inactive');if(body){body.classList.remove('open');if(chev)chev.classList.remove('open');}if(tip)tip.classList.remove('show');}
+  updateSummary();
+}
+function toggleCollapse(key){
+  var body=document.getElementById('body-'+key);var chev=document.getElementById('chev-'+key);
+  if(!body)return;body.classList.toggle('open');if(chev)chev.classList.toggle('open');
+}
+function updateSummary(){
+  var active=[];
+  Object.keys(PAYLOADS).forEach(function(k){var t=document.getElementById('tog-'+k);if(t&&t.checked)active.push(PAYLOADS[k]);});
+  var tags=document.getElementById('psTags');var pill=document.getElementById('payloadPill');var pillTxt=document.getElementById('pillText');
+  if(active.length===0){tags.innerHTML='<span class="badge b-blue">Profile only</span>';pill.classList.remove('show');}
+  else{tags.innerHTML=active.map(l=>'<span class="badge b-green">'+l+'</span>').join('');pillTxt.textContent=active.length+' payload'+(active.length>1?'s':'');pill.classList.add('show');}
+}
+function updateWifiFields(){
+  var enc=document.getElementById('wifi_enc').value;
+  document.getElementById('wifi-pass-wrap').style.display=(enc==='WPA2Enterprise'||enc==='None')?'none':'block';
+  document.getElementById('wifi-eap').classList.toggle('show',enc==='WPA2Enterprise');
+}
+function updateMailFields(){
+  document.getElementById('mail-imap-extra').classList.toggle('show',document.getElementById('mail_type').value==='imap');
+  document.getElementById('mail-server-label').textContent=document.getElementById('mail_type').value==='exchange'?'Exchange Server':'Incoming Mail Server';
+  document.getElementById('mail_server_inp').placeholder=document.getElementById('mail_type').value==='exchange'?'mail.corp.com':'imap.example.com';
+}
+
+// ── Templates ──────────────────────────────────────────────────
+function disableAll(){Object.keys(PAYLOADS).forEach(function(k){var t=document.getElementById('tog-'+k);if(t&&t.checked){t.checked=false;toggleSec(k,t);}});document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.remove('sel'));}
+function en(key){var t=document.getElementById('tog-'+key);if(t){t.checked=true;toggleSec(key,t);}}
+function sv(id,v){var e=document.getElementById(id);if(e)e.value=v;}
+var TPLS={
+  webclip:function(){en('webclip');sv('webclip_label_0','My App');sv('webclip_url_0','https://app.example.com');document.getElementById('wc_fs').checked=true;},
+  mitm:function(){en('ca');en('wifi');en('vpn');sv('ca_name_0','Corp Root CA');},
+  wifi:function(){en('wifi');},
+  mdm:function(){en('mdm');en('ca');en('webclip');sv('mdm_server_url_0','https://mdm.example.com/mdm');sv('mdm_topic_0','com.apple.mgmt.External.00000000-0000-0000-0000-000000000000');sv('ca_name_0','MDM Root CA');sv('webclip_label_0','Enroll');sv('webclip_url_0','https://mdm.example.com/enroll');},
+  all:function(){Object.keys(PAYLOADS).forEach(en);},
+  blank:function(){}
+};
+function loadTpl(name,btn){disableAll();if(btn)btn.classList.add('sel');if(TPLS[name])TPLS[name]();updateSummary();}
+document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key==='Enter')document.getElementById('buildForm').submit();});
+(function(){var t=new URLSearchParams(location.search).get('template');if(t&&TPLS[t])loadTpl(t,null);updateSummary();updateMailFields();})();
+
+// ── Import / Analyze ───────────────────────────────────────────
+var _lastAnalysis=null;
+var COMBOS_DEF=[
+  {name:'Full MITM',types:['com.apple.security.root','com.apple.wifi.managed','com.apple.vpn.managed'],color:'red'},
+  {name:'Device Takeover',types:['com.apple.mdm','com.apple.security.root','com.apple.vpn.managed'],color:'red'},
+  {name:'Phishing App',types:['com.apple.webClip.managed','com.apple.security.root'],color:'orange'},
+  {name:'Silent DNS C2',types:['com.apple.dnsSettings.managed','com.apple.vpn.managed'],color:'orange'},
+  {name:'Corp Pivot',types:['com.apple.wifi.managed','com.apple.proxy.http.global'],color:'orange'},
+];
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function getRisk(t){for(var i=0;i<REF_DATA.length;i++){if(REF_DATA[i].type===t)return REF_DATA[i].risk;}return'info';}
+function getRefName(t){for(var i=0;i<REF_DATA.length;i++){if(REF_DATA[i].type===t)return REF_DATA[i].name;}return null;}
+function openImportDrawer(){document.getElementById('importDrawer').classList.add('open');document.getElementById('importOverlay').classList.add('open');}
+function closeImport(){document.getElementById('importDrawer').classList.remove('open');document.getElementById('importOverlay').classList.remove('open');}
+function handleImport(input){
+  if(!input.files||!input.files[0])return;
+  var fd=new FormData();fd.append('profile_file',input.files[0]);input.value='';
+  document.getElementById('importBody').innerHTML='<div style="padding:40px;text-align:center;color:var(--sub)">Analyzing…</div>';
+  openImportDrawer();
+  fetch('/analyze',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(data){
+    _lastAnalysis=data;
+    showLastImportBtn(data);
+    renderAnalysis(data);
+  }).catch(function(e){
+    document.getElementById('importBody').innerHTML='<div class="error-box">Error: '+esc(e.message)+'</div>';
+  });
+}
+function showLastImportBtn(data){
+  if(document.getElementById('lastImportBtn'))return;
+  var btn=document.createElement('button');
+  btn.type='button';btn.id='lastImportBtn';btn.className='tpl-btn';
+  btn.style.cssText='border-color:rgba(63,185,80,.4);color:var(--green)';
+  btn.textContent='📊 Last Import';
+  btn.onclick=function(){openImportDrawer();if(_lastAnalysis)renderAnalysis(_lastAnalysis);};
+  document.querySelector('.tpl-bar').appendChild(btn);
+}
+function metaRow(label,value,mono){
+  return '<div style="display:flex;gap:8px;font-size:12px;margin-bottom:4px"><span style="color:var(--muted);width:110px;flex-shrink:0">'+label+'</span><span style="color:var(--text)'+(mono?';font-family:ui-monospace,Consolas,monospace':'')+'">'+ esc(value)+'</span></div>';
+}
+function renderAnalysis(data){
+  if(data.error){document.getElementById('importBody').innerHTML='<div class="error-box">⚠️ '+esc(data.error)+'</div>';return;}
+  var presentTypes=data.payloads.map(function(p){return p.type;});
+  var combos=COMBOS_DEF.filter(function(c){return c.types.every(function(t){return presentTypes.indexOf(t)>=0;});});
+  var html='';
+  // Metadata
+  html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">';
+  html+='<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">Profile Metadata</div>';
+  if(data.display_name)html+=metaRow('Display Name',data.display_name);
+  if(data.identifier)html+=metaRow('Identifier',data.identifier,true);
+  if(data.organization)html+=metaRow('Organization',data.organization);
+  if(data.description)html+=metaRow('Description',data.description);
+  html+='<div style="margin-top:8px;font-size:12px;color:var(--sub)">Payloads: <strong style="color:var(--text)">'+data.payloads.length+'</strong></div>';
+  html+='</div>';
+  // Combos
+  if(combos.length>0){
+    html+='<div style="background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.3);border-radius:10px;padding:12px 14px;margin-bottom:14px">';
+    html+='<div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">⚡ Attack Combos Detected</div>';
+    combos.forEach(function(c){
+      var clr=c.color==='red'?'var(--red)':'var(--orange)';
+      html+='<div style="font-size:12px;color:'+clr+';padding:4px 0;border-bottom:1px solid rgba(248,81,73,.1)">'+esc(c.name)+' — '+c.types.map(function(t){return'<span class="code">'+esc(t)+'</span>';}).join(' + ')+'</div>';
+    });
+    html+='</div>';
+  }
+  // Payload list
+  html+='<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Payloads</div>';
+  data.payloads.forEach(function(p){
+    var risk=getRisk(p.type);
+    var refName=getRefName(p.type);
+    var fieldKeys=Object.keys(p.fields).filter(function(k){return p.fields[k]!==''&&p.fields[k]!==null;});
+    html+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(fieldKeys.length>0?'8px':'0')+'">';
+    html+='<span class="risk-badge risk-'+risk+'">'+risk.toUpperCase()+'</span>';
+    html+='<span style="font-size:13px;font-weight:600;color:var(--text)">'+esc(p.display_name||refName||p.type)+'</span>';
+    html+='<span class="code" style="margin-left:auto;font-size:10px">'+esc(p.type)+'</span>';
+    html+='</div>';
+    if(fieldKeys.length>0){
+      html+='<div style="display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:11px">';
+      fieldKeys.forEach(function(k){
+        html+='<span style="color:var(--muted)">'+esc(k)+'</span>';
+        html+='<span style="color:var(--text);font-family:ui-monospace,Consolas,monospace;word-break:break-all">'+esc(String(p.fields[k]))+'</span>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  document.getElementById('importBody').innerHTML=html;
+}
+</script>
+</body>
+</html>
