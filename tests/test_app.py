@@ -71,7 +71,7 @@ def test_bool_helper():
 def test_index_loads(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert b"iOS Profile Builder" in r.data
+    assert b"Webcliper" in r.data
 
 
 def test_healthz(client):

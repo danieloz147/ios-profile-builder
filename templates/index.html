@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>iOS Profile Builder</title>
+<title>Webcliper</title>
 <style>
 :root{
   --bg:#0D1117;--bg2:#161B22;--card:#21262D;--card2:#2D333B;
@@ -114,7 +114,6 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
 .b-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(63,185,80,.25)}
 .b-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(210,153,34,.25)}
 .b-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,81,73,.25)}
-.b-orange{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(240,136,62,.2)}
 .code{font-family:ui-monospace,Consolas,monospace;font-size:11px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--sub)}
 .warn-box{background:var(--yellow-dim);border:1px solid rgba(210,153,34,.25);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(255,213,99,.85);margin-top:12px;line-height:1.6}
 .info-box{background:var(--blue-dim);border:1px solid rgba(47,129,247,.2);border-radius:8px;padding:10px 13px;font-size:12px;color:rgba(147,197,253,.85);margin-top:12px;line-height:1.6}
@@ -169,13 +168,14 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
 .risk-high{background:rgba(240,136,62,.12);color:#F0883E;border:1px solid rgba(240,136,62,.25)}
 .risk-medium{background:rgba(210,153,34,.1);color:#D29922;border:1px solid rgba(210,153,34,.25)}
 .risk-info{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(47,129,247,.2)}
+.risk-low{background:var(--green-dim);color:var(--green);border:1px solid rgba(63,185,80,.25)}
 </style>
 </head>
 <body>
 
 <!-- ── TOPBAR ────────────────────────────────────────── -->
 <header class="topbar">
-  <a class="tb-logo" href="/"><img src="/static/logo.jpg?v=1780620484" alt="iOS Profile Builder" style="height:48px;width:auto;border-radius:6px;display:block">iOS Profile Builder</a>
+  <a class="tb-logo" href="/"><img src="/static/logo.png?v=1780620485" alt="Webcliper" style="height:48px;width:auto;border-radius:6px;display:block">Webcliper</a>
   <div class="tb-sep"></div>
   <span class="tb-sub">Apple .mobileconfig assembler</span>
   <div class="tb-right">
@@ -254,11 +254,7 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
   <div class="sb-item" onclick="goTo('sec-webclip');setActive(this)"><span class="sb-icon">🌐</span><span class="sb-label">Web Clip</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-webclip" onchange="toggleSec('webclip',this)"><span class="tog-s"></span></label></div>
   <div class="sb-item" onclick="goTo('sec-wifi');setActive(this)"><span class="sb-icon">📶</span><span class="sb-label">Wi-Fi</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-wifi" onchange="toggleSec('wifi',this)"><span class="tog-s"></span></label></div>
   <div class="sb-item" onclick="goTo('sec-vpn');setActive(this)"><span class="sb-icon">🔒</span><span class="sb-label">VPN</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-vpn" onchange="toggleSec('vpn',this)"><span class="tog-s"></span></label></div>
-  <div class="sb-item" onclick="goTo('sec-dns');setActive(this)"><span class="sb-icon">🌍</span><span class="sb-label">DNS Settings</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-dns" onchange="toggleSec('dns',this)"><span class="tog-s"></span></label></div>
-  <div class="sb-item" onclick="goTo('sec-proxy');setActive(this)"><span class="sb-icon">🔀</span><span class="sb-label">HTTP Proxy</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-proxy" onchange="toggleSec('proxy',this)"><span class="tog-s"></span></label></div>
   <div class="sb-item" onclick="goTo('sec-ca');setActive(this)"><span class="sb-icon">🏛️</span><span class="sb-label">Root CA</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-ca" onchange="toggleSec('ca',this)"><span class="tog-s"></span></label></div>
-  <div class="sb-item" onclick="goTo('sec-mail');setActive(this)"><span class="sb-icon">✉️</span><span class="sb-label">Mail / Exchange</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-mail" onchange="toggleSec('mail',this)"><span class="tog-s"></span></label></div>
-  <div class="sb-item" onclick="goTo('sec-restrict');setActive(this)"><span class="sb-icon">🚫</span><span class="sb-label">Restrictions</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-restrict" onchange="toggleSec('restrict',this)"><span class="tog-s"></span></label></div>
   <div class="sb-item" onclick="goTo('sec-mdm');setActive(this)"><span class="sb-icon">📡</span><span class="sb-label">MDM</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-mdm" onchange="toggleSec('mdm',this)"><span class="tog-s"></span></label></div>
   <div class="sb-item" onclick="goTo('sec-custom');setActive(this)"><span class="sb-icon">🔧</span><span class="sb-label">Custom XML</span><label class="tog" onclick="event.stopPropagation()"><input type="checkbox" id="tog-custom" onchange="toggleSec('custom',this)"><span class="tog-s"></span></label></div>
 
@@ -271,9 +267,7 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
     <div class="sb-combos-title">⚡ Power Combos</div>
     <div class="sb-combo"><strong>Full MITM</strong>Root CA + Wi-Fi + VPN → plaintext TLS</div>
     <div class="sb-combo"><strong>Phishing App</strong>WebClip (FullScreen) + Root CA → no URL bar, trusted cert</div>
-    <div class="sb-combo"><strong>Silent DNS</strong>DNS Settings + VPN → covert C2 / exfil</div>
     <div class="sb-combo"><strong>Device Takeover</strong>MDM + Root CA + VPN → full remote control</div>
-    <div class="sb-combo"><strong>Corp Pivot</strong>Wi-Fi (Enterprise) + HTTP Proxy → route through attacker</div>
   </div>
 </nav>
 
@@ -347,17 +341,6 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
         </div>
       </div>
       <div class="field-group" id="wifi-pass-wrap"><label class="fl">Password</label><input type="text" name="wifi_password_0" placeholder="••••••••"></div>
-      <div class="sub-section" id="wifi-eap">
-        <div class="row-2">
-          <div class="field-group"><label class="fl">EAP Type</label><select name="wifi_eap_type_0"><option>PEAP</option><option>EAP-TLS</option><option>EAP-TTLS</option><option>EAP-FAST</option><option>LEAP</option></select></div>
-          <div class="field-group"><label class="fl">Outer Identity</label><input type="text" name="wifi_outer_id_0" placeholder="anonymous@corp.com"></div>
-        </div>
-        <div class="row-2">
-          <div class="field-group"><label class="fl">Username</label><input type="text" name="wifi_eap_user_0" placeholder="user@corp.com"></div>
-          <div class="field-group"><label class="fl">Password</label><input type="password" name="wifi_eap_pass_0"></div>
-        </div>
-        <div class="hint">Preload 802.1X credentials — device authenticates silently with attacker EAP server.</div>
-      </div>
       <div class="chk-row"><label class="chk-item"><input type="checkbox" name="wifi_autojoin_0" id="wf_aj" checked><span>Auto-join</span></label><label class="chk-item"><input type="checkbox" name="wifi_hidden_0" id="wf_hd"><span>Hidden network</span></label></div>
     </div>
   </div>
@@ -380,44 +363,7 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
   </div>
   <div class="tip-card" id="tip-vpn"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Full traffic capture:</strong> IKEv2 to attacker server → see all DNS, HTTP, metadata</li><li><strong>On-Demand VPN:</strong> Auto-reconnects on every network change — persistent exfil</li><li><strong>Corp impersonation:</strong> Mimic IT VPN config — employee connects thinking it's legitimate</li></ul><div class="tip-combo">💡 + Root CA → decrypt all TLS inside the tunnel = full plaintext MITM</div></div></div>
 
-  <!-- DNS -->
-  <div class="section inactive" id="sec-dns">
-    <div class="sec-head" onclick="toggleCollapse('dns')"><span class="sh-icon">🌍</span><span class="sh-title">DNS Settings</span><div class="sh-meta"><span class="code">com.apple.dnsSettings.managed</span></div><span class="sh-chevron" id="chev-dns">▶</span></div>
-    <div class="sec-body" id="body-dns">
-      <div class="row-2">
-        <div class="field-group"><label class="fl">DNS Protocol</label><select name="dns_protocol_0"><option value="https">DNS-over-HTTPS (DoH)</option><option value="tls">DNS-over-TLS (DoT)</option></select></div>
-        <div class="field-group"><label class="fl">Server URL / Hostname</label><input type="text" name="dns_server_0" placeholder="https://dns.example.com/dns-query"></div>
-      </div>
-      <div class="field-group"><label class="fl">Server Addresses (comma-separated)</label><input type="text" name="dns_addresses_0" placeholder="1.1.1.1, 1.0.0.1"></div>
-      <div class="field-group">
-        <label class="fl">On-Demand Rules</label>
-        <textarea name="dns_custom_xml_0" placeholder="Optional: raw plist XML for OnDemandRules" style="min-height:60px"></textarea>
-      </div>
-      <div class="hint">Pushed as <span class="code">com.apple.dnsSettings.managed</span> via custom XML. Requires iOS 14+.</div>
-    </div>
-  </div>
-  <div class="tip-card" id="tip-dns"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Silent MITM:</strong> Redirect name resolution → control what domains resolve where</li><li><strong>Covert C2:</strong> DNS-over-HTTPS to attacker server — blends into normal HTTPS traffic</li><li><strong>Exfil channel:</strong> DNS tunneling over a managed DoH resolver</li><li><strong>Block security tools:</strong> Resolve threat-intel feeds / AV update servers to 0.0.0.0</li></ul><div class="tip-combo">💡 + VPN (On-Demand) → DNS hijacking + full tunnel = covert persistent access</div></div></div>
 
-  <!-- HTTP PROXY -->
-  <div class="section inactive" id="sec-proxy">
-    <div class="sec-head" onclick="toggleCollapse('proxy')"><span class="sh-icon">🔀</span><span class="sh-title">Global HTTP Proxy</span><div class="sh-meta"><span class="code">com.apple.proxy.http.global</span><span class="badge b-red" style="margin-left:4px">supervised</span></div><span class="sh-chevron" id="chev-proxy">▶</span></div>
-    <div class="sec-body" id="body-proxy">
-      <div class="warn-box">⚠️ <strong>Supervised devices only.</strong> Requires MDM + Supervision (DEP or Apple Configurator). Unsupervised devices will silently ignore this payload.</div>
-      <div class="row-2" style="margin-top:14px">
-        <div class="field-group"><label class="fl">Proxy Type</label><select name="proxy_type_0"><option>Manual</option><option>Auto (PAC)</option></select></div>
-        <div class="field-group"><label class="fl">Proxy Server</label><input type="text" name="proxy_server_0" placeholder="proxy.example.com"></div>
-      </div>
-      <div class="row-2">
-        <div class="field-group"><label class="fl">Port</label><input type="text" name="proxy_port_0" placeholder="8080"></div>
-        <div class="field-group"><label class="fl">PAC URL (if Auto)</label><input type="url" name="proxy_pac_0" placeholder="https://example.com/proxy.pac"></div>
-      </div>
-      <div class="row-2">
-        <div class="field-group"><label class="fl">Proxy Username</label><input type="text" name="proxy_user_0"></div>
-        <div class="field-group"><label class="fl">Proxy Password</label><input type="password" name="proxy_pass_0"></div>
-      </div>
-    </div>
-  </div>
-  <div class="tip-card" id="tip-proxy"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Classic MITM:</strong> All HTTP(S) routed through Burp/ZAP/mitmproxy on attacker server</li><li><strong>Passive surveillance:</strong> Log browsing without touching DNS or routes</li><li><strong>PAC file control:</strong> Auto-proxy URL → dynamically change routing via PAC updates</li><li>⚠️ Requires supervision — useful in MDM context or when targeting supervised corporate devices</li></ul><div class="tip-combo">💡 + Root CA → attacker proxy with trusted cert = zero-warning HTTPS interception</div></div></div>
 
   <!-- ROOT CA -->
   <div class="section inactive" id="sec-ca">
@@ -433,57 +379,7 @@ input[type=file]:hover{border-color:var(--blue);color:var(--text)}
   </div>
   <div class="tip-card" id="tip-ca"><div class="tip-title">🎯 Red-Team Angle — Most Powerful Single Payload</div><div class="tip-body"><ul><li><strong>TLS MITM:</strong> Device trusts attacker CA → all HTTPS shows green lock, no warning</li><li><strong>App traffic decryption:</strong> Banking apps, mail clients, corporate SSO — all visible</li><li><strong>Cert pinning bypass:</strong> Some apps skip pinning for system-trusted CAs</li><li><strong>Pentest tool:</strong> Install Burp Suite CA for mobile traffic inspection</li></ul><div class="tip-combo">💡 Full MITM combo: Root CA + Wi-Fi (your AP) + VPN (your server) = everything in plaintext</div></div></div>
 
-  <!-- MAIL / EXCHANGE -->
-  <div class="section inactive" id="sec-mail">
-    <div class="sec-head" onclick="toggleCollapse('mail')"><span class="sh-icon">✉️</span><span class="sh-title">Mail / Exchange</span><div class="sh-meta"><span class="code">com.apple.mail.managed</span> / <span class="code">com.apple.eas.account</span></div><span class="sh-chevron" id="chev-mail">▶</span></div>
-    <div class="sec-body" id="body-mail">
-      <div class="row-2">
-        <div class="field-group"><label class="fl">Account Type</label><select name="mail_type_0" id="mail_type" onchange="updateMailFields()"><option value="imap">IMAP</option><option value="exchange">Exchange ActiveSync</option></select></div>
-        <div class="field-group"><label class="fl">Account Name</label><input type="text" name="mail_name_0" placeholder="Corporate Mail"></div>
-      </div>
-      <div class="row-2">
-        <div class="field-group"><label class="fl">Email Address</label><input type="email" name="mail_email_0" placeholder="user@corp.com"></div>
-        <div class="field-group"><label class="fl">Username</label><input type="text" name="mail_user_0" placeholder="CORP\user"></div>
-      </div>
-      <div class="row-2">
-        <div class="field-group"><label class="fl">Password</label><input type="password" name="mail_pass_0"></div>
-        <div class="field-group"><label class="fl" id="mail-server-label">Incoming Mail Server</label><input type="text" name="mail_server_0" id="mail_server_inp" placeholder="mail.example.com"></div>
-      </div>
-      <div class="sub-section" id="mail-imap-extra">
-        <div class="row-3">
-          <div class="field-group"><label class="fl">Incoming Port</label><input type="text" name="mail_in_port_0" placeholder="993"></div>
-          <div class="field-group"><label class="fl">Outgoing Server (SMTP)</label><input type="text" name="mail_smtp_0" placeholder="smtp.example.com"></div>
-          <div class="field-group"><label class="fl">Outgoing Port</label><input type="text" name="mail_out_port_0" placeholder="587"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="tip-card" id="tip-mail"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Mail redirection:</strong> Point account to attacker IMAP/Exchange → harvest all email in background</li><li><strong>Credential capture:</strong> Pre-fill username, leave password blank → iOS prompts user, logs it</li><li><strong>Exchange pivot:</strong> Auto-sync contacts, calendar, tasks from corporate Exchange → full org recon</li><li><strong>OAuth phishing:</strong> Google account variant (com.apple.google-oauth) for token grab</li></ul><div class="tip-combo">💡 + Root CA → attacker mail server with valid TLS = no connection warnings</div></div></div>
 
-  <!-- RESTRICTIONS -->
-  <div class="section inactive" id="sec-restrict">
-    <div class="sec-head" onclick="toggleCollapse('restrict')"><span class="sh-icon">🚫</span><span class="sh-title">Restrictions</span><div class="sh-meta"><span class="code">com.apple.applicationaccess</span></div><span class="sh-chevron" id="chev-restrict">▶</span></div>
-    <div class="sec-body" id="body-restrict">
-      <div class="field-group"><label class="fl">Security posture</label>
-        <div class="chk-row">
-          <label class="chk-item"><input type="checkbox" name="restrict_camera_0"><span>Disable Camera</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_safari_0"><span>Disable Safari</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_airdrop_0"><span>Disable AirDrop</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_icloud_0"><span>Disable iCloud Backup</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_appinstall_0"><span>Disable App Install</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_screenshot_0"><span>Disable Screenshot</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_vpn_0"><span>Allow VPN Config</span></label>
-          <label class="chk-item"><input type="checkbox" name="restrict_lockscreen_0"><span>Disable Lock Screen Widgets</span></label>
-        </div>
-      </div>
-      <div class="field-group">
-        <label class="fl">Raw Restriction XML <span style="font-weight:400;text-transform:none;color:var(--muted)">(advanced — merged into payload)</span></label>
-        <textarea name="restrict_xml_0" style="min-height:70px" placeholder="<key>allowCamera</key><false/>&#10;<key>allowAirDrop</key><false/>"></textarea>
-      </div>
-      <div class="hint">Restrictions are serialized as <span class="code">com.apple.applicationaccess</span> plist keys. Supervision may be required for some keys.</div>
-    </div>
-  </div>
-  <div class="tip-card" id="tip-restrict"><div class="tip-title">🎯 Red-Team Angle</div><div class="tip-body"><ul><li><strong>Security degradation:</strong> Disable VPN toggle → lock victim into attacker-controlled routes</li><li><strong>Malicious DoS:</strong> Disable App Install + Safari + AirDrop = severely degraded device</li><li><strong>Anti-forensics:</strong> Disable screenshot + screen recording → victim can't document</li><li><strong>Loosen defenses:</strong> Allow untrusted app sources to enable sideloading</li></ul><div class="tip-combo">💡 + MDM → dynamically change restrictions remotely without re-installing profile</div></div></div>
 
   <!-- MDM -->
   <div class="section inactive" id="sec-mdm">
@@ -585,7 +481,7 @@ var REF_DATA=[
   var tbody=document.getElementById('refBody');
   REF_DATA.forEach(function(r){
     var tr=document.createElement('tr');
-    var riskLabel={critical:'CRITICAL',high:'HIGH',medium:'MEDIUM',info:'INFO'}[r.risk]||r.risk;
+    var riskLabel={critical:'CRITICAL',high:'HIGH',medium:'MEDIUM',low:'LOW',info:'INFO'}[r.risk]||r.risk;
     var riskCls='risk-'+r.risk;
     var supBadge=r.supervised?'<span style="display:inline-block;margin-left:5px;font-size:9px;padding:1px 5px;border-radius:3px;background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);color:#D29922;vertical-align:middle">supervised</span>':'';
     tr.innerHTML='<td class="td-name">'+r.name+supBadge+'</td><td class="td-type"><span class="code">'+r.type+'</span></td><td><span class="risk-badge '+riskCls+'">'+riskLabel+'</span></td><td class="td-legit">'+r.legit+'</td><td class="td-attack">'+r.attack+'</td>';
@@ -604,7 +500,7 @@ function openDrawer(){document.getElementById('drawer').classList.add('open');do
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('overlay').classList.remove('open');document.getElementById('refSearch').value='';searchRef('')}
 
 // ── UI helpers ─────────────────────────────────────────────────
-var PAYLOADS={webclip:'🌐 WebClip',wifi:'📶 Wi-Fi',vpn:'🔒 VPN',dns:'🌍 DNS',proxy:'🔀 Proxy',ca:'🏛️ Root CA',mail:'✉️ Mail',restrict:'🚫 Restrictions',mdm:'📡 MDM',custom:'🔧 Custom'};
+var PAYLOADS={webclip:'🌐 WebClip',wifi:'📶 Wi-Fi',vpn:'🔒 VPN',ca:'🏛️ Root CA',mdm:'📡 MDM',custom:'🔧 Custom'};
 function setActive(el){document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));el.classList.add('active')}
 function goTo(id){var e=document.getElementById(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
 
@@ -631,14 +527,7 @@ function updateSummary(){
 function updateWifiFields(){
   var enc=document.getElementById('wifi_enc').value;
   document.getElementById('wifi-pass-wrap').style.display=(enc==='WPA2Enterprise'||enc==='None')?'none':'block';
-  document.getElementById('wifi-eap').classList.toggle('show',enc==='WPA2Enterprise');
 }
-function updateMailFields(){
-  document.getElementById('mail-imap-extra').classList.toggle('show',document.getElementById('mail_type').value==='imap');
-  document.getElementById('mail-server-label').textContent=document.getElementById('mail_type').value==='exchange'?'Exchange Server':'Incoming Mail Server';
-  document.getElementById('mail_server_inp').placeholder=document.getElementById('mail_type').value==='exchange'?'mail.corp.com':'imap.example.com';
-}
-
 // ── Templates ──────────────────────────────────────────────────
 function disableAll(){Object.keys(PAYLOADS).forEach(function(k){var t=document.getElementById('tog-'+k);if(t&&t.checked){t.checked=false;toggleSec(k,t);}});document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.remove('sel'));}
 function en(key){var t=document.getElementById('tog-'+key);if(t){t.checked=true;toggleSec(key,t);}}
@@ -653,7 +542,7 @@ var TPLS={
 };
 function loadTpl(name,btn){disableAll();if(btn)btn.classList.add('sel');if(TPLS[name])TPLS[name]();updateSummary();}
 document.addEventListener('keydown',function(e){if((e.metaKey||e.ctrlKey)&&e.key==='Enter')document.getElementById('buildForm').submit();});
-(function(){var t=new URLSearchParams(location.search).get('template');if(t&&TPLS[t])loadTpl(t,null);updateSummary();updateMailFields();})();
+(function(){var t=new URLSearchParams(location.search).get('template');if(t&&TPLS[t])loadTpl(t,null);updateSummary();})();
 
 // ── Import / Analyze ───────────────────────────────────────────
 var _lastAnalysis=null;
@@ -661,8 +550,6 @@ var COMBOS_DEF=[
   {name:'Full MITM',types:['com.apple.security.root','com.apple.wifi.managed','com.apple.vpn.managed'],color:'red'},
   {name:'Device Takeover',types:['com.apple.mdm','com.apple.security.root','com.apple.vpn.managed'],color:'red'},
   {name:'Phishing App',types:['com.apple.webClip.managed','com.apple.security.root'],color:'orange'},
-  {name:'Silent DNS C2',types:['com.apple.dnsSettings.managed','com.apple.vpn.managed'],color:'orange'},
-  {name:'Corp Pivot',types:['com.apple.wifi.managed','com.apple.proxy.http.global'],color:'orange'},
 ];
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function getRisk(t){for(var i=0;i<REF_DATA.length;i++){if(REF_DATA[i].type===t)return REF_DATA[i].risk;}return'info';}
